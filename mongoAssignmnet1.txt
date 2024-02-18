@@ -1,0 +1,88 @@
+use ToDoDB
+
+// Create tasks collection
+db.createCollection("tasks")
+
+// Insert 5 tasks into the tasks collection
+db.tasks.insertMany([
+   {
+      title: "Complete Project Proposal",
+      description: "Write and submit the project proposal document.",
+      status: "Pending",
+      due_date: ISODate("2024-03-01")
+   },
+   {
+      title: "Prepare Presentation",
+      description: "Create slides for the project presentation.",
+      status: "Pending",
+      due_date: ISODate("2024-03-05")
+   },
+   {
+      title: "Meeting with Client",
+      description: "Discuss project requirements with the client.",
+      status: "Pending",
+      due_date: ISODate("2024-02-25")
+   },
+   {
+      title: "Review Code",
+      description: "Review and refactor codebase for optimization.",
+      status: "Completed",
+      due_date: ISODate("2024-02-15")
+   },
+   {
+      title: "Submit Progress Report",
+      description: "Prepare and submit the progress report to the supervisor.",
+      status: "Completed",
+      due_date: ISODate("2024-02-10")
+   }
+])
+
+// Retrieve and display all tasks
+db.tasks.find({})
+
+// Display task details by title
+db.tasks.find({ title: "Complete Project Proposal" })
+
+// Display task details by status
+db.tasks.find({ status: "Pending" })
+
+// List all pending tasks
+db.tasks.find({ status: "Pending" })
+
+// List all completed tasks
+db.tasks.find({ status: "Completed" })
+
+// List pending tasks after due date
+db.tasks.find({ status: "Pending", due_date: { $lt: new Date() } })
+
+// Show tasks grouped by status
+db.tasks.aggregate([
+   {
+      $group: {
+         _id: "$status",
+         tasks: { $push: "$$ROOT" }
+      }
+   },
+   {
+      $project: {
+         _id: 0,
+         status: "$_id",
+         tasks: 1
+      }
+   }
+])
+
+// Update status of a specific task
+db.tasks.updateOne({ title: "Complete Project Proposal" }, { $set: { status: "Completed" } })
+
+// Update due date of a task
+db.tasks.updateOne({ title: "Prepare Presentation" }, { $set: { due_date: ISODate("2024-03-10") } })
+
+// Update due date of pending tasks due within 2 days
+db.tasks.updateMany({ status: "Pending", due_date: { $lt: new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000) } }, { $set: { due_date: new Date() } })
+
+// Remove task by title
+db.tasks.deleteOne({ title: "Meeting with Client" })
+
+// Remove tasks by status
+db.tasks.deleteMany({ status: "Completed" })
